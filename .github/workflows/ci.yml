@@ -1,0 +1,14 @@
+name: run-ci
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/build-test.yml
+    with:
+      DOTNET_VERSION: "6.0.x"
+      PROJECT_PATH: GithubDeployment.Api.sln

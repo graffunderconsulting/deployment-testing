@@ -1,0 +1,32 @@
+name: project-build
+
+on:
+  workflow_call:
+    inputs: 
+      DOTNET_VERSION:
+        description: Version
+        type: string
+        required: true
+      PROJECT_PATH:
+        description: Path
+        type: string
+        required: true
+
+defaults:
+  run: 
+    shell: bash
+
+jobs:
+  project-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+    
+      - name: Setup Dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{inputs.DOTNET_VERSION}}
+
+      - name: Build
+        run: dotnet build ${{inputs.PROJECT_PATH}} -c release

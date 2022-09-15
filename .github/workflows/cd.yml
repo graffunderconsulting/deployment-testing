@@ -1,0 +1,71 @@
+name: cd
+
+env:
+  DOTNET_VERSION: "6.0.x"
+  BUILD_CONFIG: Release
+  AZURE_WEBAPP_NAME: test-app
+  AZURE_WEBAPP_PACKAGE_PATH: "./.build/"
+
+on:
+  workflow_dispatch:
+    Deploy-QA:
+      description: Deploy to QA
+      type: boolean
+      default: true
+    Deploy-Prod:
+      description: Deploy to prod
+      type: boolean
+      default: false
+
+jobs: 
+  ci:
+    name: ci
+    uses: ./.github/workflows/build-test.yml
+    with:
+      DOTNET_VERSION: "6.0.x"
+      PROJECT_PATH: GithubDeployment.Api.sln
+
+  publish:
+    name: Create Deployment
+    runs-on: ubuntu-latest
+    needs: [ci]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: ${{env.DOTNET_VERSION}}
+
+      - name: Publish
+        run: |
+          dotnet publish GithubDeployment.Api.sln -c ${{env.BUILD_CONFIG}} -o '${{env.AZURE_WEBAPP_PACKAGE_NAME}}''
+          cd ${{env.AZURE_WEBAPP_PACKAGE_PATH}} && zip -qr ../${{env.AZURE_WEBAPP_NAME}}.zip .
+
+      - uses: actions/upload-artifact@v2
+        name: Upload
+        with:
+          name: ${{env.AZURE_WEBAPP_NAME}}
+          path: ${{github.workspace}}/${{env.AZURE_WEBAPP_NAME}}.zip
+          if-no-files-found: error
+          retention-days: 2
+
+  deploy:
+    name: Deploy
+    if: ${{github.event.inputs.Deploy-QA == 'true'}}
+    runs-on: ubuntu-latest
+    needs: [publish]
+    steps:
+      - name: Download
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{env.AZURE_WEBAPP_NAME}}
+          path: .
+
+      - name: Deploy
+        uses: azure/webapps-deploy@v2
+        with: 
+          name: matt-github-test-qa
+          publish-profile: ${{secrets.Azure_App_Profile}}
+          package: ${{env.AZURE_WEBAPP_NAME}}.zip
+

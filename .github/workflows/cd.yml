@@ -39,7 +39,7 @@ jobs:
 
       - name: Publish
         run: |
-          dotnet publish GithubDeployment.Api.sln -c ${{env.BUILD_CONFIG}} -o '${{env.AZURE_WEBAPP_PACKAGE_NAME}}''
+          dotnet publish GithubDeployment.Api.sln -c ${{env.BUILD_CONFIG}} -o ${{env.AZURE_WEBAPP_PACKAGE_PATH}}
           cd ${{env.AZURE_WEBAPP_PACKAGE_PATH}} && zip -qr ../${{env.AZURE_WEBAPP_NAME}}.zip .
 
       - uses: actions/upload-artifact@v2

@@ -16,7 +16,7 @@ namespace GithubDeployement.Api.Controllers
         [HttpGet(Name = "Test")]
         public IActionResult Get([FromQuery] string? testName)
         {
-            return Ok($"Hello {testName}");
+            return Ok($"Hello again {testName}");
         }
     }
 }
